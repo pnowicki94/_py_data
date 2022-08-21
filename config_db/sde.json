@@ -1,0 +1,9 @@
+{
+  "database_alias": "Esri SDE",
+  "description": "Esri SDE",
+  "type": "sde",
+  "params": {
+    "path": "",
+    "username": ""
+  }
+}

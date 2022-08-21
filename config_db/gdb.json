@@ -1,0 +1,8 @@
+{
+  "database_alias": "Geodatabase",
+  "description": "Geobaza plikowa",
+  "type": "gdb",
+  "params": {
+    "path": ""
+  }
+}

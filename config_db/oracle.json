@@ -1,0 +1,12 @@
+{
+  "database_alias": "oracle",
+  "description": "Baza oracle",
+  "type": "oracle",
+  "params": {
+    "host": "localhost",
+    "port": "1521",
+    "username": "test_pn",
+    "password": "test_pn",
+    "service": "test_pn"
+  }
+}
