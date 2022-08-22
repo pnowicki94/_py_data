@@ -23,10 +23,9 @@ class ConnectOracle:
         self.connection = None
 
     def __enter__(self):
+        self.make_connection()
+        return self
 
-        return self.make_connection
-
-    @property
     def make_connection(self):
         conn_str = '{0}/{1}@{2}:{3}/{4}'.format(self.username, self.password, self.host, self.port, self.service)
 
@@ -38,17 +37,15 @@ class ConnectOracle:
         except Exception as e:
             print(e)
 
-        return self
-
-    @property
-    def cursor(self):
-
-        return self.connection.cursor()
-
     @property
     def test_conn(self):
 
         return True if self.connection else False
+
+    @property
+    def cursor(self):
+        print('create cursor')
+        return self.connection.cursor()
 
     def select_from(self, sql_query):
 
@@ -56,7 +53,7 @@ class ConnectOracle:
 
     def close_connection(self):
 
-        if self.connection:
+        if self.test_conn:
             self.connection.close()
             print('---' * 10)
             print('disconnect oracle database', self.host, self.username)
@@ -73,11 +70,11 @@ class ConnectOracle:
 def get_dictionary_values(database_name, tables):
     dict_table_values = {}
 
-    with ConnectOracle(database_name) as conn_ora:
+    with ConnectOracle(database_name) as ora:
 
-        if conn_ora.test_conn:
+        if ora.test_conn:
 
-            cursor = conn_ora.cursor
+            cursor = ora.cursor
 
             for table in tables:
 
@@ -102,9 +99,9 @@ def get_dictionary_values(database_name, tables):
 def get_max_value_from_field_table(database_name, username, table, field):
     max_value = 0
 
-    with ConnectOracle(database_name) as conn_ora:
-        if conn_ora.test_conn:
-            cursor = conn_ora.cursor
+    with ConnectOracle(database_name) as ora:
+        if ora.test_conn:
+            cursor = ora.cursor
 
             sql = f"select MAX({field}) from {username}.{table}"
 
@@ -118,9 +115,9 @@ def get_max_value_from_field_table(database_name, username, table, field):
 
 
 def check_if_table_in_view(database_name, username, table):
-    with ConnectOracle(database_name) as conn_ora:
-        if conn_ora.test_conn:
-            cursor = conn_ora.cursor
+    with ConnectOracle(database_name) as ora:
+        if ora.test_conn:
+            cursor = ora.cursor
 
             sql = f"select count(*) from all_views where owner = '{username}' and view_name like '{table}'"
 
@@ -144,9 +141,9 @@ def check_if_table_in_view(database_name, username, table):
 
 
 def get_view_ddl(database_name, username, table):
-    with ConnectOracle(database_name) as conn_ora:
-        if conn_ora.test_conn:
-            cursor = conn_ora.cursor
+    with ConnectOracle(database_name) as ora:
+        if ora.test_conn:
+            cursor = ora.cursor
 
             sql = f"""select dbms_metadata.get_ddl('VIEW', VIEW_NAME, '{username}') from ALL_VIEWS WHERE 
                         OWNER = '{username}' and VIEW_NAME like '%{table}%'"""
@@ -172,9 +169,9 @@ def get_views_dependencies(database_name, username):
     exceptions_views_name = ()
     testing_views_name = ''
 
-    with ConnectOracle(database_name) as conn_ora:
-        if conn_ora.test_conn:
-            cursor = conn_ora.cursor
+    with ConnectOracle(database_name) as ora:
+        if ora.test_conn:
+            cursor = ora.cursor
 
             sql = f"""select name, referenced_name from all_dependencies where 
                         owner = '{username}' and 
