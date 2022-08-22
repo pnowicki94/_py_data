@@ -5,8 +5,8 @@
   "params": {
     "host": "localhost",
     "port": "1521",
-    "username": "test_pn",
-    "password": "test_pn",
-    "service": "test_pn"
+    "username": "test",
+    "password": "test",
+    "service": "test"
   }
 }
