@@ -44,7 +44,7 @@ class ConnectPostgres:
     @property
     def test_conn(self):
 
-        return True if self.connection else False
+        return True if self.connection and self.engine else False
 
     @property
     def cursor(self):
@@ -52,7 +52,6 @@ class ConnectPostgres:
         return self.connection.cursor()
 
     def execute_sql(self, sql):
-
         _cursor = self.connection.cursor
         try:
             _cursor.execute(sql)
@@ -60,12 +59,14 @@ class ConnectPostgres:
         except Exception as exc:
             self.logs = '{0} - {1}'.format(self.execute_sql.__name__, exc)
             self.connection.rollback()
-        _cursor.close()
+        finally:
+            _cursor.close()
 
     def close_connection(self):
 
         if self.test_conn:
             self.connection.close()
+            self.engine, self.connection = None, None
             print('disconnect database postgres')
 
     def __exit__(self, exception_type, exception_val, trace):

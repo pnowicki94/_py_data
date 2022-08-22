@@ -55,6 +55,7 @@ class ConnectOracle:
 
         if self.test_conn:
             self.connection.close()
+            self.connection = None
             print('---' * 10)
             print('disconnect oracle database', self.host, self.username)
             print('---' * 10)

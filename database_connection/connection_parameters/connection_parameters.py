@@ -1,7 +1,7 @@
 import json
 import os
 
-PARAM_FILE_DIRECTORY = r'../config_db'  # ścieżka do folderu z plikami konfiguracyjnymi baz danych
+PARAM_FILE_DIRECTORY = '_py_data/config_db'  # ścieżka do folderu z plikami konfiguracyjnymi baz danych
 
 
 def __database_config_file_directory(database):
@@ -10,7 +10,10 @@ def __database_config_file_directory(database):
     :param database: nazwa pliku z konfiguracją połączenia do bazy danych
     :return: ścieżka do pliku z konfiguracja bazy danych
     """
-    files = [os.path.join(PARAM_FILE_DIRECTORY, file) for file in os.listdir(PARAM_FILE_DIRECTORY) if
+
+    param_file_directory = os.getcwd().split('_py_data')[0] + PARAM_FILE_DIRECTORY
+
+    files = [os.path.join(param_file_directory, file) for file in os.listdir(param_file_directory) if
              file == "{}.json".format(database)]
     try:
         return files[0]
