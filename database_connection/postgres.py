@@ -23,12 +23,13 @@ class ConnectPostgres:
         self.port = config_dict.get('port')
         self.schema = schema
         self.engine, self.connection = None, None
+        self.logs = None
 
     def __enter__(self):
 
-        return self.make_connection
+        self.make_connection()
+        return self
 
-    @property
     def make_connection(self):
 
         str_conn = f"postgresql://{self.username}:{self.password}@{self.host}:{self.port}/{self.database}"
@@ -37,25 +38,38 @@ class ConnectPostgres:
             self.engine = create_engine(str_conn)
             self.connection = self.engine.raw_connection()
             print(f"Connect database postgres: {self.host} - {self.database}")
-            return self
         except Exception as e:
             print(e)
 
-        return self
+    @property
+    def test_conn(self):
 
-    def close_connection(self):
-
-        if self.connection:
-            self.connection.close()
-            print('disconnect database postgres')
-
-    def __exit__(self, exception_type, exception_val, trace):
-        self.close_connection()
+        return True if self.connection else False
 
     @property
     def cursor(self):
         print('create cursor')
         return self.connection.cursor()
+
+    def execute_sql(self, sql):
+
+        _cursor = self.connection.cursor
+        try:
+            _cursor.execute(sql)
+            self.connection.commit()
+        except Exception as exc:
+            self.logs = '{0} - {1}'.format(self.execute_sql.__name__, exc)
+            self.connection.rollback()
+        _cursor.close()
+
+    def close_connection(self):
+
+        if self.test_conn:
+            self.connection.close()
+            print('disconnect database postgres')
+
+    def __exit__(self, exception_type, exception_val, trace):
+        self.close_connection()
 
     def __repr__(self):
         return f"{type(self).__name__} (host: {self.host}, database: '{self.database}')"
@@ -63,15 +77,15 @@ class ConnectPostgres:
 
 @try_except
 def valid_database_postgres(database_name, schema, relations):
-    with ConnectPostgres(database_name, schema) as conn_pg:
-        if conn_pg.connection:
+    with ConnectPostgres(database_name, schema) as pg:
+        if pg.test_conn:
 
-            cursor = conn_pg.cursor()
+            cursor = pg.cursor
 
             sql_tables = f"""
                     SELECT table_name
                     FROM information_schema.tables
-                    WHERE table_schema = '{conn_pg.schema}'
+                    WHERE table_schema = '{pg.schema}'
                     ORDER BY table_name
                     """
 
@@ -90,7 +104,7 @@ def valid_database_postgres(database_name, schema, relations):
                     if not rel:
                         continue
 
-                    sql_query = f"select id from {conn_pg.schema}.{table}"
+                    sql_query = f"select id from {pg.schema}.{table}"
 
                     cursor.execute(sql_query)
 
@@ -103,7 +117,7 @@ def valid_database_postgres(database_name, schema, relations):
 
                         if isinstance(field_rel, list):
                             for field_r in field_rel:
-                                sql_query = f"""select {field_r} from {conn_pg.schema}.{table_rel} 
+                                sql_query = f"""select {field_r} from {pg.schema}.{table_rel} 
                                                 where {field_r} is not null"""
                                 cursor.execute(sql_query)
 
@@ -115,8 +129,8 @@ def valid_database_postgres(database_name, schema, relations):
 
                         else:
 
-                            sql_query = f"""select {field_rel} from {conn_pg.schema}.{table_rel} 
-                                            where {field_rel} is not null"""
+                            sql_query = f"""select {field_rel} from {pg.schema}.{table_rel} 
+                                        where {field_rel} is not null"""
                             cursor.execute(sql_query)
 
                             records, errors, data = validate_data(set_guids, [v[0] for v in cursor.fetchall()])
@@ -130,11 +144,11 @@ def valid_database_postgres(database_name, schema, relations):
 def get_max_value_from_field_table(database_name, username, table, field):
     max_value = 0
 
-    with ConnectPostgres(database_name, username) as conn_pg:
-        if conn_pg.connection:
-            cursor = conn_pg.cursor()
+    with ConnectPostgres(database_name, username) as pg:
+        if pg.test_conn:
+            cursor = pg.cursor
 
-            sql = f"select MAX({field}) from {conn_pg.schema}.{table}"
+            sql = f"select MAX({field}) from {pg.schema}.{table}"
 
             try:
                 cursor.execute(sql)
