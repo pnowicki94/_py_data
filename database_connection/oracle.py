@@ -5,7 +5,7 @@ from tools.tools import try_except, write_log
 cx_Oracle.init_oracle_client(lib_dir=r'C:\Program Files\Oracle\instantclient_21_3')
 
 
-class Oracle:
+class ConnectOracle:
 
     def __init__(self, database_name):
 
@@ -59,7 +59,7 @@ class Oracle:
 def get_dictionary_values(database_name, tables):
     dict_table_values = {}
 
-    with Oracle(database_name) as conn_ora:
+    with ConnectOracle(database_name) as conn_ora:
 
         if conn_ora.connection:
 
@@ -88,7 +88,7 @@ def get_dictionary_values(database_name, tables):
 def get_max_value_from_field_table(database_name, username, table, field):
     max_value = 0
 
-    with Oracle(database_name) as conn_ora:
+    with ConnectOracle(database_name) as conn_ora:
         if conn_ora.connection:
             cursor = conn_ora.cursor
 
@@ -104,7 +104,7 @@ def get_max_value_from_field_table(database_name, username, table, field):
 
 
 def check_if_table_in_view(database_name, username, table):
-    with Oracle(database_name) as conn_ora:
+    with ConnectOracle(database_name) as conn_ora:
         if conn_ora.connection:
             cursor = conn_ora.cursor
 
@@ -130,7 +130,7 @@ def check_if_table_in_view(database_name, username, table):
 
 
 def get_view_ddl(database_name, username, table):
-    with Oracle(database_name) as conn_ora:
+    with ConnectOracle(database_name) as conn_ora:
         if conn_ora.connection:
             cursor = conn_ora.cursor
 
@@ -158,7 +158,7 @@ def get_views_dependencies(database_name, username):
     exceptions_views_name = ()
     testing_views_name = ''
 
-    with Oracle(database_name) as conn_ora:
+    with ConnectOracle(database_name) as conn_ora:
         if conn_ora.connection:
             cursor = conn_ora.cursor
 
