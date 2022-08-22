@@ -2,7 +2,8 @@ import cx_Oracle
 from database_connection.connection_parameters import connection_parameters
 from tools.tools import try_except, write_log
 
-cx_Oracle.init_oracle_client(lib_dir=r'C:\Program Files\Oracle\instantclient_21_3')
+PATH_INIT_ORACLE_CLIENT = r'C:\Program Files\Oracle\instantclient_21_3'
+cx_Oracle.init_oracle_client(lib_dir=PATH_INIT_ORACLE_CLIENT)
 
 
 class ConnectOracle:
@@ -18,11 +19,16 @@ class ConnectOracle:
         self.username = config_dict.get('username')
         self.password = config_dict.get('password')
         self.port = config_dict.get('port')
-        self.database = config_dict.get('database')
+        self.service = config_dict.get('service')
+        self.connection = None
 
     def __enter__(self):
 
-        conn_str = '{0}/{1}@{2}:{3}/{4}'.format(self.username, self.password, self.host, self.port, self.database)
+        return self.make_connection
+
+    @property
+    def make_connection(self):
+        conn_str = '{0}/{1}@{2}:{3}/{4}'.format(self.username, self.password, self.host, self.port, self.service)
 
         try:
             self.connection = cx_Oracle.connect(conn_str)
@@ -30,10 +36,23 @@ class ConnectOracle:
             print('Inicializacja oracle database', self.connection.version, self.host, self.username)
             print('---' * 10)
         except Exception as e:
-            self.connection = None
             print(e)
 
         return self
+
+    @property
+    def cursor(self):
+
+        return self.connection.cursor()
+
+    @property
+    def test_conn(self):
+
+        return True if self.connection else False
+
+    def select_from(self, sql_query):
+
+        return self.cursor.execute(sql_query).fetchall() if self.test_conn else None
 
     def close_connection(self):
 
@@ -46,11 +65,6 @@ class ConnectOracle:
     def __exit__(self, exception_type, exception_val, trace):
         self.close_connection()
 
-    @property
-    def cursor(self):
-
-        return self.connection.cursor()
-
     def __repr__(self):
         return f"{type(self).__name__} (host: {self.host}, database: '{self.username}')"
 
@@ -61,7 +75,7 @@ def get_dictionary_values(database_name, tables):
 
     with ConnectOracle(database_name) as conn_ora:
 
-        if conn_ora.connection:
+        if conn_ora.test_conn:
 
             cursor = conn_ora.cursor
 
@@ -89,7 +103,7 @@ def get_max_value_from_field_table(database_name, username, table, field):
     max_value = 0
 
     with ConnectOracle(database_name) as conn_ora:
-        if conn_ora.connection:
+        if conn_ora.test_conn:
             cursor = conn_ora.cursor
 
             sql = f"select MAX({field}) from {username}.{table}"
@@ -105,7 +119,7 @@ def get_max_value_from_field_table(database_name, username, table, field):
 
 def check_if_table_in_view(database_name, username, table):
     with ConnectOracle(database_name) as conn_ora:
-        if conn_ora.connection:
+        if conn_ora.test_conn:
             cursor = conn_ora.cursor
 
             sql = f"select count(*) from all_views where owner = '{username}' and view_name like '{table}'"
@@ -131,7 +145,7 @@ def check_if_table_in_view(database_name, username, table):
 
 def get_view_ddl(database_name, username, table):
     with ConnectOracle(database_name) as conn_ora:
-        if conn_ora.connection:
+        if conn_ora.test_conn:
             cursor = conn_ora.cursor
 
             sql = f"""select dbms_metadata.get_ddl('VIEW', VIEW_NAME, '{username}') from ALL_VIEWS WHERE 
@@ -159,7 +173,7 @@ def get_views_dependencies(database_name, username):
     testing_views_name = ''
 
     with ConnectOracle(database_name) as conn_ora:
-        if conn_ora.connection:
+        if conn_ora.test_conn:
             cursor = conn_ora.cursor
 
             sql = f"""select name, referenced_name from all_dependencies where 
