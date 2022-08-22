@@ -6,13 +6,15 @@ PostgreSQL
 database_name = 'pg'
 schema_name = 'test'
 
-with ConnectPostgres(database_name, schema_name) as conn_pg:
-    if conn_pg.connection:
-        cursor = conn_pg.cursor
+with ConnectPostgres(database_name, schema_name) as pg:
+    if pg.test_conn:
+        cursor_pg = pg.cursor
+        cursor_pg.close()
 
 pg = ConnectPostgres(database_name, schema_name)
-conn_pg = pg.make_connection
-if conn_pg.connection:
-    cursor_pg = conn_pg.cursor
+pg.make_connection()
+if pg.test_conn:
+    cursor_pg = pg.cursor
+    cursor_pg.close()
 
-conn_pg.close_connection()
+pg.close_connection()
