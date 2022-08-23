@@ -38,8 +38,9 @@ mapping_geomtype = {
     'ST_LINESTRING': 'LINESTRING',
     'ST_POLYGON': 'POLYGON',
     'ST_POINT': 'POINT',
+    'ST_MULTILINESTRING': 'MULTILINESTRING',
     'ST_MULTIPOLYGON': 'MULTIPOLYGON',
-    'ST_MULTIPOINT': 'MULTIPOINT',
+    'ST_MULTIPOINT': 'MULTIPOINT'
 }
 
 
@@ -78,7 +79,7 @@ def migrate_schema_ora_to_pg(_ora, _pg, _schema_pg, _list_tables_schema, _tables
                 if not geom_type:
                     sql_create += f'\n{k.lower()} geometry null,'
                 else:
-                    sql_create += f'\n{k.lower()} geometry({mapping_geom[geom_type[0][0]]}, 2180) null,'
+                    sql_create += f'\n{k.lower()} geometry({mapping_geomtype[geom_type[0][0]]}, 2180) null,'
 
                 pass
             else:
@@ -125,6 +126,7 @@ if __name__ == '__main__':
                             and table_name not like 'APP_%' 
                             and table_name not like 'KEYSET_%' 
                             and table_name not like '%_IDX$'
+                            and table_name not like 'V%'
                             order by table_name, column_id"""
 
         list_tables_schema = ora.select_from(select_schema)
