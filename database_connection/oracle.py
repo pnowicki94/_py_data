@@ -1,6 +1,5 @@
 import cx_Oracle
 from database_connection.connection_parameters import connection_parameters
-from tools.tools import try_except, write_log
 
 PATH_INIT_ORACLE_CLIENT = r'C:\Program Files\Oracle\instantclient_21_3'
 cx_Oracle.init_oracle_client(lib_dir=PATH_INIT_ORACLE_CLIENT)
@@ -67,7 +66,6 @@ class ConnectOracle:
         return f"{type(self).__name__} (host: {self.host}, database: '{self.username}')"
 
 
-@try_except
 def get_dictionary_values(database_name, tables):
     dict_table_values = {}
 
@@ -96,7 +94,6 @@ def get_dictionary_values(database_name, tables):
     return dict_table_values
 
 
-@try_except
 def get_max_value_from_field_table(database_name, username, table, field):
     max_value = 0
 

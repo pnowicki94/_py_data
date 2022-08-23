@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine
 from database_connection.connection_parameters import connection_parameters
-from tools.tools import try_except, write_log
 
 
 class ConnectPostgres:
@@ -52,15 +51,15 @@ class ConnectPostgres:
         return self.connection.cursor()
 
     def execute_sql(self, sql):
-        _cursor = self.connection.cursor
+        cursor = self.cursor
         try:
-            _cursor.execute(sql)
+            cursor.execute(sql)
             self.connection.commit()
         except Exception as exc:
             self.logs = '{0} - {1}'.format(self.execute_sql.__name__, exc)
             self.connection.rollback()
         finally:
-            _cursor.close()
+            del cursor
 
     def close_connection(self):
 
@@ -76,7 +75,6 @@ class ConnectPostgres:
         return f"{type(self).__name__} (host: {self.host}, database: '{self.database}')"
 
 
-@try_except
 def valid_database_postgres(database_name, schema, relations):
     with ConnectPostgres(database_name, schema) as pg:
         if pg.test_conn:
@@ -126,7 +124,7 @@ def valid_database_postgres(database_name, schema, relations):
                                 if errors:
                                     print(f'{table_rel} {field_r} --> {table} id: records: {records}, errors: {errors}')
                                     file_name = f'{table}__{table_rel}__{field_r}__{records}__{errors}.log'
-                                    write_log('logMigrateValue', file_name, data)
+                                    # write_log('logMigrateValue', file_name, data)
 
                         else:
 
@@ -138,10 +136,9 @@ def valid_database_postgres(database_name, schema, relations):
                             if errors:
                                 print(f'{table_rel} {field_rel} --> {table} id: records: {records}, errors: {errors}')
                                 file_name = f'{table}__{table_rel}__{field_rel}__{records}__{errors}.log'
-                                write_log('logMigrateValue', file_name, data)
+                                # write_log('logMigrateValue', file_name, data)
 
 
-@try_except
 def get_max_value_from_field_table(database_name, username, table, field):
     max_value = 0
 
