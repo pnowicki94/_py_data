@@ -116,7 +116,7 @@ if __name__ == '__main__':
     ora = ConnectOracle(db_ora)
     pg = ConnectPostgres(db_pg, schema_pg)
 
-    pg.make_connection()  # skrypt założy tabele na bazie (wykomentowane wygeneruje tylko skrypt z create table)
+    # pg.make_connection()  # funkcja założy tabele na bazie (wykomentowane wygeneruje tylko skrypt z create table)
     ora.make_connection()
 
     if ora.test_conn:
@@ -128,7 +128,7 @@ if __name__ == '__main__':
                             order by table_name, column_id"""
 
         list_tables_schema = ora.select_from(select_schema)
-        print(list_tables_schema)
+
         script = migrate_schema_ora_to_pg(ora, pg, schema_pg, list_tables_schema, tables, tables_exceptions)
 
         filename = f'sql_create_tables_from_{ora.username}_to_{pg.schema}.sql'
