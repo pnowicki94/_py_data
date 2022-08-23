@@ -138,24 +138,6 @@ def check_if_table_in_view(database_name, username, table):
     return if_view
 
 
-def get_view_ddl(database_name, username, table):
-    with ConnectOracle(database_name) as ora:
-        if ora.test_conn:
-            cursor = ora.cursor
-
-            sql = f"""select dbms_metadata.get_ddl('VIEW', VIEW_NAME, '{username}') from ALL_VIEWS WHERE 
-                        OWNER = '{username}' and VIEW_NAME like '%{table}%'"""
-
-            try:
-                cursor.execute(sql)
-                view_ddl = cursor.fetchone()[0]
-            except Exception as e:
-                print(f'{table}: {e}')
-                view_ddl = None
-
-    return view_ddl
-
-
 def get_views_dependencies(database_name, username):
     """ Zależności widoków od tabel dla danego użytkownika bazy danych
 
