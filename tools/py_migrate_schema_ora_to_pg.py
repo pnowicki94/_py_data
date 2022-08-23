@@ -47,7 +47,7 @@ def migrate_schema_ora_to_pg(_ora, _pg, _schema_pg, _list_tables_schema, _tables
 
     tables_columns = {}
 
-    for i, table in enumerate(_list_tables_schema):
+    for table in _list_tables_schema:
 
         if table[0] in tables_columns:
             tables_columns[table[0]][table[1]] = [table[2], table[3]]
