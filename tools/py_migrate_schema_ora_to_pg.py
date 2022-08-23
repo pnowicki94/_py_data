@@ -4,7 +4,7 @@ Migracja schematów tabel z bazy Oracle do bazy PostgreSQL
 """
 from database_connection.postgres import ConnectPostgres
 from database_connection.oracle import ConnectOracle
-import time
+import os
 
 # mapping parameters ---------------------------------------------------------------------------------------------------
 mapping_datatype = {
@@ -44,36 +44,27 @@ mapping_geomtype = {
 
 
 def migrate_schema_ora_to_pg(_ora, _pg, _schema_pg, _list_tables_schema, _tables, _tables_exceptions):
-    dict_column = {}
-    dict_tables = {}
+
+    tables_columns = {}
 
     for i, table in enumerate(_list_tables_schema):
 
-        if i == 0:
-            dict_column[table[1]] = [table[2], table[3]]
-
-        elif table[0] == list_tables[i - 1][0]:
-            dict_column[table[1]] = [table[2], table[3]]
-
+        if table[0] in tables_columns:
+            tables_columns[table[0]][table[1]] = [table[2], table[3]]
         else:
-
-            # dict_tables[list_tables[i - 1][0]] = dict_column
-            # dict_column = {}
-            # dict_column[table[1]] = [table[2], table[3]]
-
-            dict_tables[list_tables[i - 1][0]] = dict_column
-            dict_column = {}
-            dict_column[table[1]] = [table[2], table[3]]
+            tables_columns[table[0]] = {table[1]: [table[2], table[3]]}
 
     sql_create_all = """"""
 
-    for table, fields in dict_tables.items():
+    for table, fields in tables_columns.items():
 
-        if table not in _tables:
+        if _tables and table not in _tables:
             continue
 
         if table in _tables_exceptions:
             continue
+
+        print(table)
 
         sql_create = f"""create table if not exists {_schema_pg}.{table.lower()} ("""
 
@@ -95,7 +86,7 @@ def migrate_schema_ora_to_pg(_ora, _pg, _schema_pg, _list_tables_schema, _tables
                 sql_create += f'\n{k.lower()} {mapping_datatype.get(v[0])}({v[1]}) null,' if v[
                     1] else f'\n{k.lower()} {mapping_datatype.get(v[0])} null,'
 
-        sql_create = sql_create[:-1] + ');'
+        sql_create = sql_create[:-1] + ');\n'
 
         try:
             if _pg.test_conn:
@@ -104,7 +95,7 @@ def migrate_schema_ora_to_pg(_ora, _pg, _schema_pg, _list_tables_schema, _tables
         except Exception as e:
             print('error', e, table)
 
-        sql_create_all += sql_create
+        sql_create_all += sql_create + '\n'
 
     return sql_create_all
 
@@ -125,24 +116,24 @@ if __name__ == '__main__':
     ora = ConnectOracle(db_ora)
     pg = ConnectPostgres(db_pg, schema_pg)
 
-    # pg.make_connection()  # skrypt założy tabele na bazie (wykomentowane wygeneruje tylko skrypt z create table)
+    pg.make_connection()  # skrypt założy tabele na bazie (wykomentowane wygeneruje tylko skrypt z create table)
     ora.make_connection()
 
     if ora.test_conn:
         select_schema = f"""SELECT table_name, column_name,data_type,char_length FROM all_tab_columns 
-                            WHERE owner = '{schema_ora}' 
+                            WHERE owner = '{schema_ora.upper()}' 
                             and table_name not like 'APP_%' 
                             and table_name not like 'KEYSET_%' 
                             and table_name not like '%_IDX$'
                             order by table_name, column_id"""
 
         list_tables_schema = ora.select_from(select_schema)
-
+        print(list_tables_schema)
         script = migrate_schema_ora_to_pg(ora, pg, schema_pg, list_tables_schema, tables, tables_exceptions)
 
         filename = f'sql_create_tables_from_{ora.username}_to_{pg.schema}.sql'
         with open(sql_dir + os.sep + filename, 'w') as f_sql:
             f_sql.write(script)
 
-    ora.disconnect()
-    pg.disconnect()
+    ora.close_connection()
+    pg.close_connection()
