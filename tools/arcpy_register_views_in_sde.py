@@ -33,7 +33,6 @@ path_sde, user = paths_sde[database]
 # key: view name, value: geometry type 
 views = {
     '': 'Point',
-    '': 'Polygon'
 }
 
 if __name__ == '__main__':
