@@ -21,8 +21,7 @@ def register_views(_views, _path_sde, _user):
 
 
 # database path, user --------------------------------------------------------------------------------------------------
-paths_sde = {
-    '': (r'', ''),
+paths_sde = {'': (r'', ''),
 
 }
 
@@ -33,7 +32,8 @@ path_sde, user = paths_sde[database]
 
 # key: view name, value: geometry type 
 views = {
-    'V_...': 'Polygon'
+    '': 'Point',
+    '': 'Polygon'
 }
 
 if __name__ == '__main__':
