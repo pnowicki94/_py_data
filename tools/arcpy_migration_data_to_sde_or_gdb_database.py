@@ -60,10 +60,10 @@ def migration_data(path_gdb_in, path_gdb_out, tables=(), table_exceptions=(), us
 
 
 # params----------------------------------------------------------------------------------------------------------------
-gdb_in = r'C:\GisPartner\PN\migracja2021\migracja_BIWALU_test_prod\wawa_szablony_v2_wersja_prod_20220819.gdb'
-sde_or_gdb_out = r'C:\GisPartner\PN\KZGWPROD2@SIGWPROD.sde'
+gdb_in = r''
+sde_or_gdb_out = r''
 username_input = r''
-username_output = r'SIGWPROD'
+username_output = r''
 migration_tables = ()
 exceptions_tables = ()
 
