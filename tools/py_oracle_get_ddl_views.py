@@ -27,11 +27,11 @@ def get_ddl_view(database_name, _username, tables):
 
 if __name__ == '__main__':
     views = [
-        'V_...'
+        ''
     ]
 
-    db = 'test'
-    username = 'test'
+    db = ''
+    username = ''
     dir_files = r''
     sql_ddl = get_ddl_view(db, username, views)
 
