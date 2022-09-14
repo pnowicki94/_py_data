@@ -3,7 +3,7 @@ import numpy as np
 import arcpy
 import os
 
-PATH_REFERENCE = r'C:\GISPartner\isok\_isok_database\_reference_data\reference_data.gdb'
+PATH_REFERENCE = r''
 
 
 class EditSession:
