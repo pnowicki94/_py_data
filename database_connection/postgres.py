@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine
 from database_connection.connection_parameters import connection_parameters
+import geopandas as gpd
 
 
 class ConnectPostgres:
@@ -58,6 +59,18 @@ class ConnectPostgres:
         except Exception as exc:
             self.logs = '{0} - {1}'.format(self.execute_sql.__name__, exc)
             self.connection.rollback()
+        finally:
+            del cursor
+
+    def get_data(self, sql):
+        cursor = self.cursor
+        try:
+            cursor.execute(sql)
+            return cursor.fetchall()
+        except Exception as exc:
+            self.logs = '{0} - {1}'.format(self.execute_sql.__name__, exc)
+            print('{0} - {1}'.format(self.execute_sql.__name__, exc))
+            return None
         finally:
             del cursor
 
@@ -155,3 +168,30 @@ def get_max_value_from_field_table(database_name, username, table, field):
                 print(f'{e} {table} {field} {max_value}')
 
     return max_value
+
+
+def gdf_from_postgis(db, schema, table, shape_column, where=None):
+    """ Geodataframe z tabeli z bazy postgres
+    :param db: nazwa bazy danych
+    :param schema: schemat na bazie
+    :param table: tabela na bazie
+    :param shape_column: nazwa kolumny z geometrią
+    :param where: opcjonalnie warunek where
+    :return: gdf wynikowy lub pusty jeśli wystąpi błąd podczas wyciągania danych
+    """
+    with ConnectPostgres(db, schema) as conn_pg:
+
+        sql = f"SELECT * from {schema}.{table} where {where}" if where else f"SELECT * from {schema}.{table}"
+
+        if conn_pg.test_conn:
+            try:
+                gdf = gpd.read_postgis(sql, conn_pg.engine, geom_col=shape_column)
+                info('postgis to geo dataframe')
+                return gdf
+            except Exception as e:
+                print(e)
+
+        else:
+            print('Brak połączenia z bazą')
+
+    return gpd.GeoDataFrame()
