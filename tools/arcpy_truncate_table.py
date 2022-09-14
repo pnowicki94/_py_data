@@ -2,7 +2,6 @@
 import arcpy
 
 
-# truncate gdb tables
 def truncate_gdb(gdb, exceptions=None):
     arcpy.env.workspace = gdb
     tb = arcpy.ListTables()
@@ -10,5 +9,10 @@ def truncate_gdb(gdb, exceptions=None):
     for table in tb + fc:
         if exceptions and table in exceptions:
             continue
-        print('truncate: ', gdb.split('\\')[-1], table)
         arcpy.TruncateTable_management(in_table=table)
+        print("'{0}',".format(table))
+
+
+if __name__ == '__main__':
+    gdb_ = r''
+    truncate_gdb(gdb_)
