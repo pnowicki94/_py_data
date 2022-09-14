@@ -5,13 +5,16 @@ import arcpy
 import os
 
 
-def delete_from_sde_or_gdb(path_to_old_data, path_sde_or_gdb, user_database, _where, _test):
+def delete_from_sde_or_gdb(path_to_old_data, path_sde_or_gdb, user_database, _exception_tables, _where, _test):
     arcpy.env.workspace = path_to_old_data
 
     tables = arcpy.ListTables() + arcpy.ListFeatureClasses()
 
     for table in tables:
         print(table)
+
+        if table in _exception_tables:
+            continue
 
         delete_guids = set()
         with arcpy.da.SearchCursor(table, ['ID']) as cursor:
@@ -43,7 +46,7 @@ def delete_from_sde_or_gdb(path_to_old_data, path_sde_or_gdb, user_database, _wh
 if __name__ == '__main__':
     # wskazanie bazy danych, na której chcemy wyczyścić dane
     db = ''
-    test = False  # True: test, False: delete data
+    test = True  # True: test, False: delete data
 
     deleted_database = {'': (r'', '')}
 
@@ -52,4 +55,6 @@ if __name__ == '__main__':
     path_gdb_old = r''
     where = ""
 
-    delete_from_sde_or_gdb(path_gdb_old, database, username, where, test)
+    exception_tables = []
+
+    delete_from_sde_or_gdb(path_gdb_old, database, username, exception_tables, where, test)
